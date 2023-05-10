@@ -72,7 +72,7 @@ flattened_features_scaled = scaler.fit_transform(flattened_features)
 np.save("flattened_features_scaled.npy", flattened_features_scaled)
 np.save("labels.npy",np.array(labels))
 # Cluster the SIFT features to create a visual vocabulary
-kmeans = KMeans(n_clusters=NUM_CLUSTERS, random_state=42, verbose=1)
+kmeans = KMeans(n_clusters=NUM_CLUSTERS, random_state=22, verbose=1)
 kmeans.fit(flattened_features_scaled)
 
 
@@ -102,10 +102,10 @@ np.save("X.npy", X)
 np.save("y.npy", y)
 
 # Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=22)
 
 # Create an MLP classifier
-mlp = MLPClassifier(hidden_layer_sizes=(256, 128), random_state=42)
+mlp = MLPClassifier(hidden_layer_sizes=(256, 128), random_state=22)
 
 # Train the MLP classifier
 mlp.fit(X_train, y_train)

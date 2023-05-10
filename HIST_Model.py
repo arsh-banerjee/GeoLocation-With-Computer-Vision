@@ -12,16 +12,8 @@ import os
 IMG_WIDTH = 512
 IMG_HEIGHT = 220
 
-# Set the number of bins for the color histogram
-NUM_BINS = 32
+random_state = 22
 
-# Set the MLP architecture
-HIDDEN_LAYER_SIZES = (256, 128)
-ACTIVATION = 'relu'
-RANDOM_STATE = 42
-
-# Set the test size for splitting the data
-TEST_SIZE = 0.2
 
 # Function to extract color histogram features from images
 def extract_color_histogram(image):
@@ -29,10 +21,11 @@ def extract_color_histogram(image):
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     # Compute the color histogram
-    hist = cv2.calcHist([hsv_image], [0, 1, 2], None, [NUM_BINS, NUM_BINS, NUM_BINS], [0, 180, 0, 256, 0, 256])
+    hist = cv2.calcHist([hsv_image], [0, 1, 2], None, [32, 32, 32], [0, 180, 0, 256, 0, 256])
     hist = cv2.normalize(hist, hist).flatten()
 
     return hist
+
 
 # Load and preprocess the images, and extract color histogram features
 def load_images(directory):
@@ -57,6 +50,7 @@ def load_images(directory):
 
     return images, labels
 
+
 # Load and preprocess the images
 directory = "compressed_dataset"
 images, labels = load_images(directory)
@@ -70,10 +64,10 @@ label_encoder = LabelEncoder()
 labels_encoded = label_encoder.fit_transform(labels)
 
 # Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(images, labels_encoded, test_size=TEST_SIZE, random_state=RANDOM_STATE)
+X_train, X_test, y_train, y_test = train_test_split(images, labels_encoded, test_size=0.2, random_state=random_state)
 
 # Create an MLP model
-mlp = MLPClassifier(hidden_layer_sizes=HIDDEN_LAYER_SIZES, activation=ACTIVATION, random_state=RANDOM_STATE)
+mlp = MLPClassifier(hidden_layer_sizes=(256, 128), activation='relu', random_state=random_state)
 
 # Train the MLP model
 train_losses = []
@@ -81,12 +75,19 @@ train_accuracies = []
 epochs = 100  # Number of training epochs
 
 for epoch in range(epochs):
-    mlp.partial_fit(X_train, y_train)
+    mlp.partial_fit(X_train, y_train, classes=np.unique(y_train))
     train_predictions = mlp.predict(X_train)
     train_loss = mlp.loss_
     train_accuracy = accuracy_score(y_train, train_predictions)
     train_losses.append(train_loss)
     train_accuracies.append(train_accuracy)
+    # Make predictions on the testing data
+    test_predictions = mlp.predict(X_test)
+
+    # Calculate the accuracy of the model on testing data
+    test_accuracy = accuracy_score(y_test, test_predictions)
+
+    print("Testing Accuracy:", test_accuracy)
 
 model_filename = 'trained_model.pkl'
 joblib.dump(mlp, model_filename)
